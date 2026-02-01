@@ -2,8 +2,13 @@ import requests
 import pandas as pd
 import numpy as np
 
-# Put in the access token obtained from get-access-token.py
-access_token = 'YOUR ACCESS TOKEN'
+from dotenv import load_dotenv # python-dotenv module required
+import os   # To read environment variable that defines ACCESS_TOKEN
+
+# Read the value of ACCESS_TOKEN from .env file
+# Ensure ACCESS_TOKEN is an active token (Generated within 8-hour period)
+load_dotenv()
+access_token = os.environ['ACCESS_TOKEN']
 
 # Headers for the API request
 headers = {
