@@ -7,7 +7,7 @@ This retrieves an access token required to access Fitbit data programmatically. 
 https://dev.fitbit.com/build/reference/web-api/troubleshooting-guide/oauth2-tutorial/ 
 
 **steps.py:<br>**
-A minimal demo app that illustrates how to retrieve step data for a week.  You must first update the ACCESS_TOKEN variable.  Be sure to use a code editor such as Notepad++ or VS Code.  Built-in plain text editors such as Notepad usually append a .txt file extension, which will cause the Python program to fail (it's expecting a file named .env).  
+A minimal demo app that illustrates how to retrieve step data for a week.  You must first update the ACCESS_TOKEN variable in .env.  Be sure to use a code editor such as Notepad++ or VS Code.  Built-in plain text editors such as Notepad usually append a .txt file extension, which will cause the Python program to fail (it's expecting a file named .env).  
 
 **fitbit_data.py:<br>**
 Set of utility functions (and tests) to retrieve step, HRV, and heart rate data.  Data is saved in csv files and returned as DataFrames.  Requires installation of python-dotenv module (see below).  Fitbit Web API documentation can be found at: https://dev.fitbit.com/build/reference/web-api/
@@ -25,12 +25,8 @@ https://docs.google.com/document/d/149YtFyO5k26Z9kgkh6el9sO4TRXkhuSMgwgTZ75BOiA/
 
 **First, download fitbit_data.py, .env, and fitbit_dashboard to the same folder where you previously stored steps.py.**
 
-### Install Python libraries
-In a terminal window, navigate to the project folder where steps.py is stored and activate the Python virtual environment.  Install the following:
-* pip3 install python-dotenv   (pip in Windows)
-* pip3 install streamlit
-* pip3 install matplotlib
-* pip3 install seaborn
+### Create Virtual Environment and Install Python libraries
+This is best performed in a development tool such as VS Code.  Create a virtual environment and initialize it using the libraries listed in requirements.txt.
 
 ### Running fitbit_data.py:
 
