@@ -1,0 +1,11 @@
+fitbit
+cherrypy
+pandas
+numpy
+requests
+matplotlib
+seaborn
+dotenv
+streamlit
+
+
