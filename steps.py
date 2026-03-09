@@ -27,7 +27,7 @@ auth_client = fitbit.Fitbit(
 # Fetches step count data from Fitbit API for a specified date range.
 def get_user_steps(ending_day):
     url = f"https://api.fitbit.com/1/user/-/activities/steps/date/{ending_day}/1w.json"
-    response = requests.get(url, headers= headers)
+    response = auth_client.client.session.get(url)
     if response.status_code == 200:
         step = response.json()
         step_x_vals = np.array([])
