@@ -45,14 +45,20 @@ def get_HRV(day):
         HRV_day = response.json()
         hrv_vals = []
         hrv_time = []
-        hrv_data = HRV_day['hrv'][0]['minutes']
-        # print(hrv_data)
-        for data_item in hrv_data:
-            hrv_time.append(data_item['minute'])
-            hrv_vals.append(data_item['value']['rmssd'])
+        if HRV_day['hrv']:
+            print(HRV_day)
+            hrv_data = HRV_day['hrv'][0]['minutes']
+            # print(hrv_data)
+            for data_item in hrv_data:
+                hrv_time.append(data_item['minute'])
+                hrv_vals.append(data_item['value']['rmssd'])
 
-        df = pd.DataFrame({'time': np.array(hrv_time), 'hrv_rnssd': np.array(hrv_vals)})
-        return df
+            df = pd.DataFrame({'time': np.array(hrv_time), 'hrv_rnssd': np.array(hrv_vals)})
+            return df
+        else:
+            # create blank df if no data is returned.
+            df = pd.DataFrame()
+            return df
 
     else:
         print(f"Error: {response.status_code}")
@@ -78,6 +84,17 @@ def get_hr_per_min(day):
     else:
         print(f"Error: {response.status_code}")
         return None
+
+def get_user_zone_json(day):
+    url = f"https://api.fitbit.com/1/user/-/activities/active-zone-minutes/date/{day}/30d.json"
+    print(f'URL generated for Zone data retrieval:\n{url}')
+
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        zone = response.json()
+        json_str = json.dumps(zone, indent = 3)
+        return json_str
 
 def main():
     day = input('Enter a date (yyyy-mm-dd): ')
