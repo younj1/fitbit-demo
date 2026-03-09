@@ -1,19 +1,28 @@
+import fitbit
 import requests
 import pandas as pd
 import numpy as np
 
-from dotenv import load_dotenv # python-dotenv module required
-import os   # To read environment variable that defines ACCESS_TOKEN
+from dotenv import load_dotenv, set_key
+import os
 
-# Read the value of ACCESS_TOKEN from .env file
-# Ensure ACCESS_TOKEN is an active token (Generated within 8-hour period)
 load_dotenv()
-access_token = os.environ['ACCESS_TOKEN']
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
+ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
+REFRESH_TOKEN = os.environ['REFRESH_TOKEN']
 
-# Headers for the API request
-headers = {
-    'Authorization': f'Bearer {access_token}'
-}
+def save_tokens(token):
+    set_key('.env', 'ACCESS_TOKEN', token['access_token'])
+    set_key('.env', 'REFRESH_TOKEN', token['refresh_token'])
+
+auth_client = fitbit.Fitbit(
+    CLIENT_ID, CLIENT_SECRET,
+    oauth2=True,
+    access_token=ACCESS_TOKEN,
+    refresh_token=REFRESH_TOKEN,
+    refresh_cb=save_tokens
+)
 
 # Fetches step count data from Fitbit API for a specified date range.
 def get_user_steps(ending_day):

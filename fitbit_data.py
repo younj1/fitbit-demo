@@ -1,24 +1,34 @@
+import fitbit
 import requests
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from dotenv import load_dotenv # python-dotenv module required
-import os   # To read environment variable that defines ACCESS_TOKEN
+from dotenv import load_dotenv, set_key
+import os
 
-# Read the value of ACCESS_TOKEN from .env file
-# Ensure ACCESS_TOKEN is an active token (Generated within 8-hour period)
 load_dotenv()
-access_token = os.environ['ACCESS_TOKEN']
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
+ACCESS_TOKEN = os.environ['ACCESS_TOKEN']
+REFRESH_TOKEN = os.environ['REFRESH_TOKEN']
 
-# headers are included as part of each API call for authentication purposes
-# via access token
-headers = {'Authorization': f'Bearer {access_token}'}
+def save_tokens(token):
+    set_key('.env', 'ACCESS_TOKEN', token['access_token'])
+    set_key('.env', 'REFRESH_TOKEN', token['refresh_token'])
+
+auth_client = fitbit.Fitbit(
+    CLIENT_ID, CLIENT_SECRET,
+    oauth2=True,
+    access_token=ACCESS_TOKEN,
+    refresh_token=REFRESH_TOKEN,
+    refresh_cb=save_tokens
+)
 
 # Fetches step count data from Fitbit API for a specified date range.
 def get_user_steps(day):
     url = f"https://api.fitbit.com/1/user/-/activities/steps/date/{day}/30d.json"
     print(f'URL generated for step data retrieval:\n{url}')
-    response = requests.get(url, headers= headers)
+    response = auth_client.client.session.get(url)
     if response.status_code == 200:
         step = response.json()
         step_x_vals = np.array([])
@@ -40,7 +50,7 @@ def get_user_steps(day):
 def get_HRV(day):
     url = f"https://api.fitbit.com/1/user/-/hrv/date/{day}/all.json"
     print(f'URL generated for HRV data retrieval:\n{url}')
-    response = requests.get(url, headers=headers)
+    response = auth_client.client.session.get(url)
     if response.status_code == 200:
         HRV_day = response.json()
         hrv_vals = []
@@ -63,7 +73,7 @@ def get_hr_per_min(day):
     url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{day}/1d/1min.json"
     print(f'URL generated for HR data retrieval:\n{url}')
 
-    response = requests.get(url, headers=headers)
+    response = auth_client.client.session.get(url)
     if response.status_code == 200:
         Heart = response.json()
         heart_xvals = np.array([])
