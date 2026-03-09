@@ -1,20 +1,18 @@
 import requests
 import pandas as pd
 import numpy as np
+#imported json 
+import json
 from datetime import datetime
-from dotenv import load_dotenv # python-dotenv module required
-import os   # To read environment variable that defines ACCESS_TOKEN
+from dotenv import load_dotenv 
+import os  
 
-# Read the value of ACCESS_TOKEN from .env file
-# Ensure ACCESS_TOKEN is an active token (Generated within 8-hour period)
 load_dotenv()
 access_token = os.environ['ACCESS_TOKEN']
 
-# headers are included as part of each API call for authentication purposes
-# via access token
+
 headers = {'Authorization': f'Bearer {access_token}'}
 
-# Fetches step count data from Fitbit API for a specified date range.
 def get_user_steps(day):
     url = f"https://api.fitbit.com/1/user/-/activities/steps/date/{day}/30d.json"
     print(f'URL generated for step data retrieval:\n{url}')
@@ -36,7 +34,6 @@ def get_user_steps(day):
         return None
 
 
-# Fetches HRV 5-minute data from Fitbit API for a specified date.
 def get_HRV(day):
     url = f"https://api.fitbit.com/1/user/-/hrv/date/{day}/all.json"
     print(f'URL generated for HRV data retrieval:\n{url}')
@@ -48,7 +45,7 @@ def get_HRV(day):
         if HRV_day['hrv']:
             print(HRV_day)
             hrv_data = HRV_day['hrv'][0]['minutes']
-            # print(hrv_data)
+            
             for data_item in hrv_data:
                 hrv_time.append(data_item['minute'])
                 hrv_vals.append(data_item['value']['rmssd'])
@@ -56,7 +53,7 @@ def get_HRV(day):
             df = pd.DataFrame({'time': np.array(hrv_time), 'hrv_rnssd': np.array(hrv_vals)})
             return df
         else:
-            # create blank df if no data is returned.
+            
             df = pd.DataFrame()
             return df
 
@@ -64,7 +61,7 @@ def get_HRV(day):
         print(f"Error: {response.status_code}")
         return None
 
-# Fetches heart rate data per-minute from Fitbit API for a given day.
+
 def get_hr_per_min(day):
     url = f"https://api.fitbit.com/1/user/-/activities/heart/date/{day}/1d/1min.json"
     print(f'URL generated for HR data retrieval:\n{url}')
@@ -85,16 +82,55 @@ def get_hr_per_min(day):
         print(f"Error: {response.status_code}")
         return None
 
-def get_user_zone_json(day):
+
+def get_user_zone(day):
     url = f"https://api.fitbit.com/1/user/-/activities/active-zone-minutes/date/{day}/30d.json"
     print(f'URL generated for Zone data retrieval:\n{url}')
 
     response = requests.get(url, headers=headers)
-    
+
     if response.status_code == 200:
         zone = response.json()
-        json_str = json.dumps(zone, indent = 3)
-        return json_str
+
+        # Print the raw JSON object to the terminal
+        print("\nRaw JSON response for active zone minutes:")
+        print(json.dumps(zone, indent=3))
+
+        # Lists to hold each column of data extracted from the JSON
+        dates = []
+        fat_burn_mins = []
+        cardio_mins = []
+        peak_mins = []
+        total_azm = []
+
+        # Each entry in the list contains a date and a nested value dict with zone breakdowns
+        for entry in zone["activities-active-zone-minutes"]:
+            dates.append(entry["dateTime"])
+            val = entry["value"]
+            # Some days may not have every zone key; default to 0 if missing
+            fat_burn_mins.append(val.get("fatBurnActiveZoneMinutes", 0))
+            cardio_mins.append(val.get("cardioActiveZoneMinutes", 0))
+            peak_mins.append(val.get("peakActiveZoneMinutes", 0))
+            total_azm.append(val.get("activeZoneMinutes", 0))
+
+        # Build a DataFrame with one row per day
+        zone_df = pd.DataFrame({
+            'Date': dates,
+            'Fat Burn Zone (min)': fat_burn_mins,
+            'Cardio Zone (min)': cardio_mins,
+            'Peak Zone (min)': peak_mins,
+            'Total Active Zone Minutes': total_azm
+        })
+
+        # Save the DataFrame to a CSV file named with the ending date
+        csv_filename = f'zone-end-{day}.csv'
+        zone_df.to_csv(csv_filename, index=False)
+        print(f'\nSaving 30-day active zone minutes data to {csv_filename}\n')
+
+        return zone_df
+    else:
+        print(f"Error: {response.status_code}")
+        return None
 
 def main():
     day = input('Enter a date (yyyy-mm-dd): ')
@@ -111,6 +147,9 @@ def main():
     df_hrv = get_HRV(day)
     print(f'Saving HRV data for {day} to hrv-{day}.csv\n\n')
     df_hrv.to_csv(f'hrv-{day}.csv')
+
+    # Fetch and save active zone minutes for the 30 days ending on the entered date
+    get_user_zone(day)
 
 if __name__ == '__main__':
     main()
